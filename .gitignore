@@ -1,0 +1,44 @@
+# --- Ambientes Virtuais (Virtual Environments) ---
+# Ignora a pasta do ambiente virtual para não enviar todas as bibliotecas para o Git.
+# Cada desenvolvedor recria o seu a partir do requirements.txt.
+.venv/
+venv/
+env/
+.env/
+
+# --- Arquivos compilados do Python ---
+# Ignora o cache de bytecode do Python.
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# --- Arquivos de Build/Distribuição ---
+# Ignora pacotes gerados para distribuição no PyPI.
+build/
+dist/
+*.egg-info/
+*.egg
+
+# --- Arquivos de Configuração de IDE/Editor ---
+# Ignora configurações específicas do seu editor de código.
+.vscode/
+.idea/
+*.swp
+
+# --- Arquivos de Testes e Cobertura ---
+# Ignora caches e relatórios gerados por ferramentas de teste como o pytest.
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Arquivos de Sistema Operacional ---
+# Ignora arquivos de metadados do macOS e Windows.
+.DS_Store
+Thumbs.db
+
+# --- Arquivos de Ambiente e Logs (MUITO IMPORTANTE!) ---
+# NUNCA envie suas variáveis de ambiente (senhas, chaves de API) para o Git.
+.env
+*.env
+*.log
