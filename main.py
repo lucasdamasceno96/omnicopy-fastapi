@@ -1,35 +1,20 @@
-from datetime import datetime, timezone
-from random import randint
-#import select
-from fastapi import FastAPI, Request, HTTPException, Depends
-from typing import Annotated, Any
+# main.py
+
+from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from sqlmodel import SQLModel, create_engine, Session, select, Field
+from sqlmodel import Session, select
+from datetime import datetime
 
-class Campaign(SQLModel, table=True):
-    campaign_id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(index=True)
-    due_date: datetime | None = Field(default=None, index=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc),nullable=True,index=True)
+from .db.database import create_db_and_tables, engine
+from .models.schemas import Campaign
+from .routers import campaigns
 
-
-sql_file_name = "database.db"
-sqlite_url = f"sqlite:///{sql_file_name}"
-connect_args= {"check_same_thread": False}
-engine = create_engine(sqlite_url, connect_args=connect_args)
-
-
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
-
-def get_session():
-    with Session(engine) as session:
-        yield session
-    
-SessionDep = Annotated[Session, Depends(get_session)]
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    print("Starting up...")
     create_db_and_tables()
+    
+    # Popula o banco com dados iniciais se estiver vazio
     with Session(engine) as session:
         if not session.exec(select(Campaign)).first():
             session.add_all([
@@ -38,30 +23,19 @@ async def lifespan(app: FastAPI):
             ])
             session.commit()
     yield
+    print("Shutting down...")
 
-app = FastAPI(root_path="/api/v1", lifespan=lifespan)
+app = FastAPI(
+    lifespan=lifespan,
+    title="Campaign Manager API",
+    description="A hands-on project to keep coding skills sharp.",
+    version="1.0.0",
+    root_path="/api/v1" # Opcional: define um prefixo global
+)
+
+# Inclui o roteador de campanhas na aplicação principal
+app.include_router(campaigns.router)
 
 @app.get("/")
 async def root():
-    return{"message":"Hello World from fastAPI !"}
-
-data: Any = [
-    {
-        "campaign_id":1,
-        "name": "Summer Launch",
-        "due_date": datetime.now(),
-        "created_at": datetime.now(),
-    },
-    {
-        "campaign_id":2,
-        "name": "Black Friday",
-        "due_date": datetime.now(),
-        "created_at": datetime.now(),
-    }
-]
-
-
-@app.get("/campaigns")
-async def read_campaigns(session: SessionDep):
-    data = session.exec(select(Campaign)).all()
-    return {"campaigns": data}
+    return {"message": "Welcome to the Campaign Manager API!"}
